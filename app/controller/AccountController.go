@@ -10,15 +10,19 @@ import (
 	"gorm.io/gorm"
 )
 
+//AccountController is struct to define database
 type AccountController struct {
 	DB *gorm.DB
 }
 
+//CreateAccount is function to create account
 func (c AccountController) CreateAccount(ctx *gin.Context) {
 
-	account := model.AccountModel{
+	accountModel := model.AccountModel{
 		DB: c.DB,
 	}
+
+	var account model.Account
 
 	err := ctx.Bind(&account)
 	if err != nil {
@@ -34,7 +38,7 @@ func (c AccountController) CreateAccount(ctx *gin.Context) {
 
 	account.Password = hashPassword
 
-	flag, err := account.InsertNewAccount()
+	flag, err := accountModel.InsertNewAccount(account)
 	if err != nil {
 		utils.WrapAPIError(ctx, err.Error(), http.StatusInternalServerError)
 		return
@@ -49,6 +53,7 @@ func (c AccountController) CreateAccount(ctx *gin.Context) {
 	utils.WrapAPISuccess(ctx, "success", http.StatusOK)
 }
 
+//GetAccount is function to get all account
 func (c AccountController) GetAccount(ctx *gin.Context) {
 
 	idAccount := ctx.MustGet("account_number").(int)
@@ -74,18 +79,21 @@ func (c AccountController) GetAccount(ctx *gin.Context) {
 	return
 }
 
+//Login is function to login in application
 func (c AccountController) Login(ctx *gin.Context) {
 	authModel := model.AuthModel{
 		DB: c.DB,
 	}
 
-	err := ctx.Bind(&authModel)
+	var auth model.Auth
+
+	err := ctx.Bind(&auth)
 	if err != nil {
 		utils.WrapAPIError(ctx, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	flag, err, token := authModel.Login()
+	flag, err, token := authModel.Login(auth)
 	if err != nil {
 		utils.WrapAPIError(ctx, err.Error(), http.StatusInternalServerError)
 		return

@@ -7,6 +7,8 @@ import (
 	"github.com/YoriDigitalent/ImplementasiMVC-GO-24/app/model"
 )
 
+var DB *gorm.DB
+
 func DBInit() *gorm.DB {
 	db, err := gorm.Open(mysql.Open("root:@/simple_bank?charset=utf8&parseTime=True&loc=Local"), &gorm.Config{})
 	if err != nil {
@@ -14,7 +16,9 @@ func DBInit() *gorm.DB {
 	}
 
 	//automigrate here
-	db.AutoMigrate(new(model.AccountModel), new(model.TransactionModel))
+	db.AutoMigrate(new(model.Account), new(model.Transaction))
+
+	DB = db
 
 	return db
 }

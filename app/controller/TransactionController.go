@@ -9,22 +9,26 @@ import (
 	"gorm.io/gorm"
 )
 
+//TransactionController is struct to define database
 type TransactionController struct {
 	DB *gorm.DB
 }
 
+//Transfer is function to transfer
 func (c TransactionController) Transfer(ctx *gin.Context) {
 	transactionModel := model.TransactionModel{
 		DB: c.DB,
 	}
 
-	err := ctx.Bind(&transactionModel)
+	var trx model.Transaction
+
+	err := ctx.Bind(&trx)
 	if err != nil {
 		utils.WrapAPIError(ctx, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	flag, err := transactionModel.Transfer()
+	flag, err := transactionModel.Transfer(trx)
 	if err != nil {
 		utils.WrapAPIError(ctx, err.Error(), http.StatusInternalServerError)
 		return
@@ -39,18 +43,21 @@ func (c TransactionController) Transfer(ctx *gin.Context) {
 	return
 }
 
+//Withdraw is function to transfer
 func (c TransactionController) Withdraw(ctx *gin.Context) {
 	transactionModel := model.TransactionModel{
 		DB: c.DB,
 	}
 
-	err := ctx.Bind(&transactionModel)
+	var trx model.Transaction
+
+	err := ctx.Bind(&trx)
 	if err != nil {
 		utils.WrapAPIError(ctx, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	flag, err := transactionModel.Withdraw()
+	flag, err := transactionModel.Withdraw(trx)
 	if err != nil {
 		utils.WrapAPIError(ctx, err.Error(), http.StatusInternalServerError)
 		return
@@ -65,18 +72,21 @@ func (c TransactionController) Withdraw(ctx *gin.Context) {
 	return
 }
 
+//Deposit is function to transfer
 func (c TransactionController) Deposit(ctx *gin.Context) {
 	transactionModel := model.TransactionModel{
 		DB: c.DB,
 	}
 
-	err := ctx.Bind(&transactionModel)
+	var trx model.Transaction
+
+	err := ctx.Bind(&trx)
 	if err != nil {
 		utils.WrapAPIError(ctx, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	flag, err := transactionModel.Deposit()
+	flag, err := transactionModel.Deposit(trx)
 	if err != nil {
 		utils.WrapAPIError(ctx, err.Error(), http.StatusInternalServerError)
 		return

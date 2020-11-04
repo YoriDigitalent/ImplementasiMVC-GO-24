@@ -35,7 +35,7 @@ func Auth(c *gin.Context) {
 	fmt.Println(claims)
 
 	var idAccount int
-	err = mapstructure.Decode(claims["account_number"], idAccount)
+	err = mapstructure.Decode(claims["account_number"], &idAccount)
 	if err != nil {
 		result := gin.H{
 			"message": err.Error(),
@@ -43,6 +43,8 @@ func Auth(c *gin.Context) {
 		c.JSON(http.StatusUnauthorized, result)
 		c.Abort()
 	}
+
+	fmt.Println(idAccount)
 
 	c.Set("account_number", idAccount)
 }

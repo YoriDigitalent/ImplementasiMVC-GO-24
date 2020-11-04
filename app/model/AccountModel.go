@@ -9,8 +9,7 @@ import (
 	"gorm.io/gorm"
 )
 
-type AccountModel struct {
-	DB            *gorm.DB
+type Account struct {
 	ID            int    `gorm:"primary_key" json:"-"`
 	IdAccount     string `json:"id_account,omitempty"`
 	Name          string `json:"name"`
@@ -19,12 +18,16 @@ type AccountModel struct {
 	Saldo         int    `json:"saldo"`
 }
 
-func (account AccountModel) InsertNewAccount() (bool, error) {
+type AccountModel struct {
+	DB *gorm.DB
+}
+
+func (model AccountModel) InsertNewAccount(account Account) (bool, error) {
 	account.AccountNumber = utils.RangeIn(1000, 999999)
 	account.Saldo = 0
 	account.IdAccount = fmt.Sprintf("id-%d", utils.RangeIn(10, 5000))
 
-	result := account.DB.Create(&account)
+	result := model.DB.Create(&account)
 
 	if result.Error != nil {
 		return false, result.Error
@@ -33,27 +36,28 @@ func (account AccountModel) InsertNewAccount() (bool, error) {
 	return true, nil
 }
 
-func (account AccountModel) GetAccountDetail(idAccount int) (bool, error, []TransactionModel, AccountModel) {
+func (model AccountModel) GetAccountDetail(idAccount int) (bool, error, []TransactionModel, Account) {
 	var transaction []TransactionModel
+	var account Account
 
-	result := account.DB.Where("sender = ? OR recipient = ?", idAccount, idAccount).Find(&transaction)
+	result := model.DB.Model(&Transaction{}).Where("sender = ? OR recipient = ?", idAccount, idAccount).Find(&transaction)
 
 	if result.Error != nil {
 		if result.Error == gorm.ErrRecordNotFound {
-			return false, errors.Errorf("Account not found"), []TransactionModel{}, AccountModel{}
+			return false, errors.Errorf("Account not found"), []TransactionModel{}, Account{}
 		}
-		return false, result.Error, []TransactionModel{}, AccountModel{}
+		return false, result.Error, []TransactionModel{}, Account{}
 	}
 
-	result = account.DB.Where(&AccountModel{
+	result = model.DB.Where(&Account{
 		AccountNumber: idAccount,
 	}).Find(&AccountModel{})
 
 	if result.Error != nil {
 		if result.Error == gorm.ErrRecordNotFound {
-			return false, errors.Errorf("Account not found"), []TransactionModel{}, AccountModel{}
+			return false, errors.Errorf("Account not found"), []TransactionModel{}, Account{}
 		}
-		return false, result.Error, []TransactionModel{}, AccountModel{}
+		return false, result.Error, []TransactionModel{}, Account{}
 	}
 
 	return true, nil, transaction, account

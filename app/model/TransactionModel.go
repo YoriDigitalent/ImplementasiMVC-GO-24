@@ -10,8 +10,7 @@ import (
 	"gorm.io/gorm"
 )
 
-type TransactionModel struct {
-	DB                     *gorm.DB
+type Transaction struct {
 	ID                     int    `gorm:"primary_key" json:"-"`
 	TransactionType        int    `json:"transaction_type,omitempty"`
 	TransactionDescription string `json:"transaction_description"`
@@ -21,12 +20,16 @@ type TransactionModel struct {
 	Timestamp              int64  `json:"timestamp"`
 }
 
-func (trx TransactionModel) Transfer() (bool, error) {
+type TransactionModel struct {
+	DB *gorm.DB
+}
 
-	err := trx.DB.Transaction(func(tx *gorm.DB) error {
-		var sender, recipient AccountModel
+func (model TransactionModel) Transfer(trx Transaction) (bool, error) {
 
-		result := tx.Model(&AccountModel{}).Where(&AccountModel{
+	err := model.DB.Transaction(func(tx *gorm.DB) error {
+		var sender, recipient Account
+
+		result := tx.Model(&Account{}).Where(&Account{
 			AccountNumber: trx.Sender,
 		}).First(&sender)
 
@@ -45,7 +48,7 @@ func (trx TransactionModel) Transfer() (bool, error) {
 			return result.Error
 		}
 
-		result = tx.Model(&AccountModel{}).Where(AccountModel{
+		result = tx.Model(&Account{}).Where(Account{
 			AccountNumber: trx.Recipient,
 		}).First(&recipient).
 			Update("saldo", recipient.Saldo+trx.Amount)
@@ -74,12 +77,12 @@ func (trx TransactionModel) Transfer() (bool, error) {
 
 }
 
-func (trx TransactionModel) Withdraw() (bool, error) {
+func (model TransactionModel) Withdraw(trx Transaction) (bool, error) {
 
-	err := trx.DB.Transaction(func(tx *gorm.DB) error {
-		var sender AccountModel
+	err := model.DB.Transaction(func(tx *gorm.DB) error {
+		var sender Account
 
-		result := tx.Model(&AccountModel{}).Where(&AccountModel{
+		result := tx.Model(&Account{}).Where(&Account{
 			AccountNumber: trx.Sender,
 		}).First(&sender)
 
@@ -114,10 +117,10 @@ func (trx TransactionModel) Withdraw() (bool, error) {
 	return true, nil
 }
 
-func (trx TransactionModel) Deposit() (bool, error) {
-	err := trx.DB.Transaction(func(tx *gorm.DB) error {
-		var sender AccountModel
-		result := tx.Model(&AccountModel{}).Where(&AccountModel{
+func (model TransactionModel) Deposit(trx Transaction) (bool, error) {
+	err := model.DB.Transaction(func(tx *gorm.DB) error {
+		var sender Account
+		result := tx.Model(&Account{}).Where(&Account{
 			AccountNumber: trx.Sender,
 		}).First(&sender).
 			Update("saldo", sender.Saldo+trx.Amount)
